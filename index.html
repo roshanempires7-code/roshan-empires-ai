@@ -3,177 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roshan Empires - AI Assistant</title>
+    <title>Roshan Empires AI - Live Web Render</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: #1e293b;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 600px;
-            border: 1px solid #334155;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 8px;
-            color: #38bdf8;
-            font-size: 28px;
-        }
-
-        p.subtitle {
-            text-align: center;
-            color: #94a3b8;
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 12px;
-            background-color: #0f172a;
-            border: 1px solid #475569;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 15px;
-            resize: vertical;
-            outline: none;
-        }
-
-        textarea:focus {
-            border-color: #38bdf8;
-        }
-
-        button {
-            padding: 12px;
-            background-color: #0284c7;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background-color: #0369a1;
-        }
-
-        .result-box {
-            margin-top: 20px;
-            padding: 16px;
-            background-color: #0f172a;
-            border-radius: 8px;
-            border-left: 4px solid #38bdf8;
-            display: none;
-        }
-
-        .result-title {
-            font-size: 14px;
-            color: #38bdf8;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .result-content {
-            font-size: 15px;
-            white-space: pre-line;
-            line-height: 1.5;
-        }
-
-        .loading {
-            text-align: center;
-            color: #38bdf8;
-            display: none;
-            margin-top: 15px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #fff; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; color: #38bdf8; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 20px; }
+        .input-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        textarea { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #fff; font-size: 15px; height: 60px; resize: none; }
+        button { padding: 0 25px; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0369a1; }
+        .preview-container { width: 100%; height: 75vh; background: #ffffff; border-radius: 8px; border: 2px solid #334155; overflow: hidden; margin-top: 10px; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .status { margin-bottom: 8px; font-weight: bold; color: #38bdf8; }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>Roshan Empires AI</h1>
-        <p class="subtitle">Enter your task below to process via Roshan AI Server</p>
-
-        <div class="input-group">
-            <textarea id="taskInput" placeholder="Write your task here (e.g. Write a 2-line poem about AI)..."></textarea>
-            <button onclick="sendTask()">Submit Task 🚀</button>
+        <h1>Roshan Empires AI 🚀</h1>
+        <p class="subtitle">Enter your prompt to render a live website preview instantly!</p>
+        
+        <div class="input-box">
+            <textarea id="promptInput" placeholder="e.g. Build a modern website for NEXO Pet shop with Tailwind CSS"></textarea>
+            <button onclick="generateWebsite()">Generate Website 🎨</button>
         </div>
 
-        <div id="loading" class="loading">Processing with AI Server...</div>
-
-        <div id="resultBox" class="result-box">
-            <div class="result-title">Response Output:</div>
-            <div id="resultContent" class="result-content"></div>
+        <div class="status" id="statusText">Live Preview Output:</div>
+        
+        <div class="preview-container">
+            <iframe id="webPreview" srcdoc="<h2 style='font-family:sans-serif; text-align:center; margin-top:20%; color:#64748b;'>Enter a prompt above and click Generate to view your live website here!</h2>"></iframe>
         </div>
     </div>
 
     <script>
-        async function sendTask() {
-            const taskText = document.getElementById('taskInput').value;
-            const resultBox = document.getElementById('resultBox');
-            const resultContent = document.getElementById('resultContent');
-            const loading = document.getElementById('loading');
+        const BACKEND_URL = "/run";
 
-            if (!taskText.trim()) {
-                alert("Please enter a task first!");
+        async function generateWebsite() {
+            const prompt = document.getElementById('promptInput').value;
+            const previewFrame = document.getElementById('webPreview');
+            const statusText = document.getElementById('statusText');
+
+            if (!prompt) {
+                alert("Please enter a task!");
                 return;
             }
 
-            loading.style.display = 'block';
-            resultBox.style.display = 'none';
+            statusText.innerText = "Generating Website... Please wait ⏳";
+            previewFrame.srcdoc = "<h2 style='font-family:sans-serif; text-align:center; margin-top:20%; color:#0284c7;'>Building your website with AI... 🚀</h2>";
 
             try {
-                // Fixed API route to relative path '/run'
-                const response = await fetch('/run', {
+                const response = await fetch(BACKEND_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ prompt: taskText, task: taskText })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
                 });
 
                 const data = await response.json();
-                loading.style.display = 'none';
-
-                if (response.ok) {
-                    resultContent.innerText = data.result || JSON.stringify(data);
-                    resultBox.style.display = 'block';
+                
+                if (data.result) {
+                    statusText.innerText = "Live Website Rendered Successfully! ✅";
+                    previewFrame.srcdoc = data.result;
                 } else {
-                    resultContent.innerText = "Error: " + JSON.stringify(data.detail);
-                    resultBox.style.display = 'block';
+                    statusText.innerText = "Error generating website.";
                 }
-            } catch (error) {
-                loading.style.display = 'none';
-                alert("Cannot connect to server. Please check your network connection!");
+            } catch (err) {
+                statusText.innerText = "Connection Error!";
+                console.error(err);
             }
         }
     </script>
