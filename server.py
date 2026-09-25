@@ -6,7 +6,7 @@ from google import genai
 
 app = FastAPI(docs_url=None, redoc_url=None)
 
-# Gemini API Client initialize ho raha hai
+# Gemini API Client initialization
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 class Task(BaseModel):
@@ -23,7 +23,6 @@ def health_check():
 
 @app.post("/run")
 def run_task(task_data: Task):
-    # Prompt input check
     user_prompt = task_data.prompt or task_data.task
     if not user_prompt:
         return {"result": "Koyi prompt nahi mila!"}
