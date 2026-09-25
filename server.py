@@ -6,7 +6,6 @@ from google import genai
 
 app = FastAPI(docs_url=None, redoc_url=None)
 
-# Gemini API Client initialization
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 class Task(BaseModel):
@@ -27,12 +26,19 @@ def run_task(task_data: Task):
     if not user_prompt:
         return {"result": "Koyi prompt nahi mila!"}
     
+    system_instruction = (
+        "You are a web generator. Output ONLY full valid HTML code with inline CSS/Tailwind CDN. "
+        "Do NOT output markdown codeblocks, do NOT write explanations, greetings or commentary. "
+        "Output pure HTML only starting with <!DOCTYPE html>."
+    )
+    
     try:
-        # Gemini 3.8 Flash model call
         response = client.models.generate_content(
             model='gemini-3.8-flash',
-            contents=user_prompt,
+            contents=f"{system_instruction}\n\nTask: {user_prompt}",
         )
-        return {"result": response.text}
+        
+        raw_html = response.text.replace("```html", "").replace("```", "").strip()
+        return {"result": raw_html}
     except Exception as e:
         return {"result": f"Error: {str(e)}"}
