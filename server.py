@@ -1,14 +1,18 @@
+import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from google import genai
 
-app = FastAPI(docs_url=None, redoc_url=None)  # docs_url=None se /docs page hide ho jayega
+app = FastAPI(docs_url=None, redoc_url=None)
 
-# Request model for /run endpoint
+# Gemini API Client initialize ho raha hai
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
 class Task(BaseModel):
-    prompt: str
+    prompt: str = ""
+    task: str = ""
 
-# Root par frontend index.html render hoga
 @app.get("/")
 def read_root():
     return FileResponse("index.html")
@@ -18,6 +22,18 @@ def health_check():
     return {"status": "online", "message": "Roshan AI is running 🚀"}
 
 @app.post("/run")
-def run_task(task: Task):
-    # Aapka backend logic
-    return {"result": f"Processed prompt: {task.prompt}"}
+def run_task(task_data: Task):
+    # Prompt input check
+    user_prompt = task_data.prompt or task_data.task
+    if not user_prompt:
+        return {"result": "Koyi prompt nahi mila!"}
+    
+    try:
+        # Gemini 2.5 Flash model call
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=user_prompt,
+        )
+        return {"result": response.text}
+    except Exception as e:
+        return {"result": f"Error: {str(e)}"}
