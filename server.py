@@ -28,9 +28,9 @@ def run_task(task_data: Task):
         return {"result": "Koyi prompt nahi mila!"}
     
     try:
-        # Gemini 2.5 Flash model call
+        # Gemini 3.8 Flash model call
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.8-flash',
             contents=user_prompt,
         )
         return {"result": response.text}
