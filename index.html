@@ -152,19 +152,20 @@
             resultBox.style.display = 'none';
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/run', {
+                // Fixed API route to relative path '/run'
+                const response = await fetch('/run', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ task: taskText })
+                    body: JSON.stringify({ prompt: taskText, task: taskText })
                 });
 
                 const data = await response.json();
                 loading.style.display = 'none';
 
                 if (response.ok) {
-                    resultContent.innerText = data.result;
+                    resultContent.innerText = data.result || JSON.stringify(data);
                     resultBox.style.display = 'block';
                 } else {
                     resultContent.innerText = "Error: " + JSON.stringify(data.detail);
@@ -172,7 +173,7 @@
                 }
             } catch (error) {
                 loading.style.display = 'none';
-                alert("Cannot connect to server. Make sure Python uvicorn server is running!");
+                alert("Cannot connect to server. Please check your network connection!");
             }
         }
     </script>
